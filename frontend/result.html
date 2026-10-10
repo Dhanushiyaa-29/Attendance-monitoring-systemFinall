@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — AttendAI</title>
+  <meta name="description" content="Attendance records dashboard and smart approval management panel." />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .approve-btn { min-width: 80px; }
+    .manager-badge {
+      display:inline-flex;align-items:center;gap:6px;
+      background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);
+      border-radius:var(--radius-full);padding:4px 12px;
+      font-size:0.78rem;font-weight:600;color:#fbbf24;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"><div class="bg-orb"></div></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/index.html" class="navbar-brand" id="nav-brand">
+        <div class="navbar-logo">🎯</div>
+        <span class="navbar-title">AttendAI</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" id="nav-home">Home</a></li>
+        <li><a href="/register.html" id="nav-register">Register</a></li>
+        <li><a href="/attendance.html" id="nav-attendance">Mark Attendance</a></li>
+        <li><a href="/result.html" class="active" id="nav-result">Dashboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="container" style="padding-top:48px;padding-bottom:80px;">
+
+      <!-- Page Header -->
+      <div class="flex items-center justify-between mb-8 fade-in" style="flex-wrap:wrap;gap:16px;">
+        <div>
+          <h1 class="section-title">Attendance <span class="text-gradient">Dashboard</span></h1>
+          <p class="section-subtitle">Records, verification results, and approval management</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <span class="manager-badge">👔 Manager View</span>
+          <button class="btn btn-ghost btn-sm" id="btn-refresh" onclick="loadAll()">
+            🔄 Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row fade-in" id="stats-row">
+        <div class="stat-chip">
+          <div class="stat-chip-value" id="stat-total">—</div>
+          <div class="stat-chip-label">Total Records</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value" id="stat-approved">—</div>
+          <div class="stat-chip-label">Approved</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value" id="stat-pending">—</div>
+          <div class="stat-chip-label">Pending</div>
+        </div>
+        <div class="stat-chip">
+          <div class="stat-chip-value" id="stat-employees">—</div>
+          <div class="stat-chip-label">Employees</div>
+        </div>
+      </div>
+
+      <!-- Attendance Records -->
+      <div class="card fade-in" style="margin-bottom:24px;">
+        <div class="card-header">
+          <div class="card-icon card-icon-primary">📋</div>
+          <div style="flex:1;">
+            <div class="card-title">Attendance Records</div>
+            <div class="card-subtitle">All attendance submissions — today and history</div>
+          </div>
+          <!-- Filter Tabs -->
+          <div class="filter-tabs" role="tablist" aria-label="Filter records">
+            <button class="filter-tab active" data-filter="all" onclick="filterRecords('all',this)" role="tab">All</button>
+            <button class="filter-tab" data-filter="Approved" onclick="filterRecords('Approved',this)" role="tab">Approved</button>
+            <button class="filter-tab" data-filter="Pending" onclick="filterRecords('Pending',this)" role="tab">Pending</button>
+            <button class="filter-tab" data-filter="Rejected" onclick="filterRecords('Rejected',this)" role="tab">Rejected</button>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="attendance-table" aria-label="Attendance records table">
+            <thead>
+              <tr>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Approval</th>
+                <th>Confidence</th>
+                <th>Late</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="attendance-tbody">
+              <tr>
+                <td colspan="9">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div class="empty-state-title">Loading records...</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Employees List -->
+      <div class="card fade-in">
+        <div class="card-header">
+          <div class="card-icon card-icon-success">👥</div>
+          <div>
+            <div class="card-title">Registered Employees</div>
+            <div class="card-subtitle">All enrolled employees with face embeddings</div>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="employees-table" aria-label="Registered employees table">
+            <thead>
+              <tr>
+                <th>Employee ID</th>
+                <th>Name</th>
+                <th>Registered On</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="employees-tbody">
+              <tr>
+                <td colspan="4">
+                  <div class="empty-state">
+                    <div class="empty-state-icon">⏳</div>
+                    <div class="empty-state-title">Loading employees...</div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Approval Modal -->
+  <div id="approval-modal" style="
+    display:none;position:fixed;inset:0;z-index:999;
+    background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);
+    align-items:center;justify-content:center;padding:20px;
+  ">
+    <div class="card" style="width:100%;max-width:440px;">
+      <div class="card-header">
+        <div class="card-icon card-icon-warning">⚖️</div>
+        <div>
+          <div class="card-title">Approval Decision</div>
+          <div class="card-subtitle" id="modal-subtitle">Review the attendance record</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div id="modal-record-info" style="margin-bottom:20px;"></div>
+        <div class="form-group">
+          <label class="form-label" for="modal-manager-id">Manager ID</label>
+          <input type="text" id="modal-manager-id" class="form-input" placeholder="e.g. MGR001" value="MGR001" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="modal-reason">Reason / Note (optional)</label>
+          <input type="text" id="modal-reason" class="form-input" placeholder="e.g. Approved — valid reason for late arrival" />
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px;">
+          <button class="btn btn-success flex-1" id="modal-btn-approve" onclick="submitApproval('approve')">
+            ✅ Approve
+          </button>
+          <button class="btn btn-danger flex-1" id="modal-btn-reject" onclick="submitApproval('reject')">
+            ❌ Reject
+          </button>
+          <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000';
+    let allRecords = [];
+    let currentFilter = 'all';
+    let selectedAttendanceId = null;
+
+    // ── Toast ──────────────────────────────────────────────────
+    function showToast(title, message, type = 'info') {
+      const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast toast-${type}`;
+      toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <div><div class="toast-title">${title}</div><div class="toast-message">${message}</div></div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.add('toast-exit');
+        setTimeout(() => toast.remove(), 300);
+      }, 4000);
+    }
+
+    // ── Badge Helper ───────────────────────────────────────────
+    function approvalBadge(status) {
+      const map = {
+        Approved: 'badge-success',
+        Rejected: 'badge-danger',
+        Pending:  'badge-warning',
+      };
+      return `<span class="badge ${map[status] || 'badge-neutral'}">${status}</span>`;
+    }
+
+    // ── Load Attendance Records ────────────────────────────────
+    async function loadAttendance() {
+      try {
+        const res = await fetch(`${API_BASE}/attendance/`, { signal: AbortSignal.timeout(6000) });
+        const data = await res.json();
+        allRecords = data.records || [];
+        renderAttendance(allRecords);
+        updateStats(allRecords);
+      } catch (e) {
+        document.getElementById('attendance-tbody').innerHTML = `
+          <tr><td colspan="9">
+            <div class="empty-state">
+              <div class="empty-state-icon">⚠️</div>
+              <div class="empty-state-title">Could not load records</div>
+              <div class="empty-state-desc">Check that the backend is running.</div>
+            </div>
+          </td></tr>
+        `;
+      }
+    }
+
+    function renderAttendance(records) {
+      const tbody = document.getElementById('attendance-tbody');
+      if (!records.length) {
+        tbody.innerHTML = `
+          <tr><td colspan="9">
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <div class="empty-state-title">No records found</div>
+              <div class="empty-state-desc">Attendance records will appear here after employees mark attendance.</div>
+            </div>
+          </td></tr>
+        `;
+        return;
+      }
+      tbody.innerHTML = records.map(r => {
+        const canApprove = r.approval_status === 'Pending';
+        const confPct = Math.round((r.confidence || 0) * 100);
+        const confClass = confPct >= 80 ? 'badge-success' : confPct >= 65 ? 'badge-warning' : 'badge-danger';
+        return `
+          <tr>
+            <td><code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">${r.employee_id}</code></td>
+            <td style="font-weight:600;color:var(--text-primary);">${r.name}</td>
+            <td>${r.date}</td>
+            <td>${r.time}</td>
+            <td><span class="badge badge-success">${r.status}</span></td>
+            <td>${approvalBadge(r.approval_status)}</td>
+            <td><span class="badge ${confClass}">${confPct}%</span></td>
+            <td>${r.late ? '<span class="badge badge-warning">Late</span>' : '<span class="badge badge-success">On Time</span>'}</td>
+            <td>
+              ${canApprove && r.attendance_id
+                ? `<button class="btn btn-sm btn-primary approve-btn" onclick="openModal('${r.attendance_id}','${r.employee_id}','${r.name}','${r.date}')">
+                     ⚖️ Review
+                   </button>`
+                : '—'
+              }
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterRecords(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      const filtered = filter === 'all' ? allRecords : allRecords.filter(r => r.approval_status === filter);
+      renderAttendance(filtered);
+    }
+
+    function updateStats(records) {
+      document.getElementById('stat-total').textContent = records.length;
+      document.getElementById('stat-approved').textContent = records.filter(r => r.approval_status === 'Approved').length;
+      document.getElementById('stat-pending').textContent = records.filter(r => r.approval_status === 'Pending').length;
+    }
+
+    // ── Load Employees ─────────────────────────────────────────
+    async function loadEmployees() {
+      try {
+        const res = await fetch(`${API_BASE}/employee/`, { signal: AbortSignal.timeout(6000) });
+        const data = await res.json();
+        const employees = data.employees || [];
+        document.getElementById('stat-employees').textContent = employees.length;
+
+        const tbody = document.getElementById('employees-tbody');
+        if (!employees.length) {
+          tbody.innerHTML = `
+            <tr><td colspan="4">
+              <div class="empty-state">
+                <div class="empty-state-icon">👥</div>
+                <div class="empty-state-title">No employees registered yet</div>
+                <div class="empty-state-desc"><a href="/register.html" style="color:var(--color-primary-light);">Register the first employee →</a></div>
+              </div>
+            </td></tr>
+          `;
+          return;
+        }
+        tbody.innerHTML = employees.map(e => `
+          <tr>
+            <td><code style="font-family:'JetBrains Mono',monospace;font-size:0.8rem;">${e.employee_id}</code></td>
+            <td style="font-weight:600;color:var(--text-primary);">${e.name}</td>
+            <td>${e.created_at || '—'}</td>
+            <td>
+              <a href="/attendance.html" class="btn btn-sm btn-ghost">📸 Verify</a>
+            </td>
+          </tr>
+        `).join('');
+      } catch {
+        document.getElementById('employees-tbody').innerHTML = `
+          <tr><td colspan="4"><div class="empty-state"><div class="empty-state-desc">Could not load employees.</div></div></td></tr>
+        `;
+      }
+    }
+
+    // ── Approval Modal ─────────────────────────────────────────
+    function openModal(attendanceId, employeeId, name, date) {
+      selectedAttendanceId = attendanceId;
+      document.getElementById('modal-subtitle').textContent = `${name} · ${employeeId} · ${date}`;
+      document.getElementById('modal-record-info').innerHTML = `
+        <div style="background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);padding:16px;">
+          <div class="result-row"><span class="result-label">Employee</span><span class="result-value">${name}</span></div>
+          <div class="result-row"><span class="result-label">ID</span><span class="result-value">${employeeId}</span></div>
+          <div class="result-row" style="border:none;"><span class="result-label">Date</span><span class="result-value">${date}</span></div>
+        </div>
+      `;
+      const modal = document.getElementById('approval-modal');
+      modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('approval-modal').style.display = 'none';
+      selectedAttendanceId = null;
+    }
+
+    async function submitApproval(action) {
+      if (!selectedAttendanceId) return;
+      const managerId = document.getElementById('modal-manager-id').value.trim() || 'MGR001';
+      const reason = document.getElementById('modal-reason').value.trim();
+
+      try {
+        const res = await fetch(`${API_BASE}/attendance/approval/${selectedAttendanceId}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, manager_id: managerId, reason }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(
+            action === 'approve' ? 'Approved' : 'Rejected',
+            `Attendance ${action === 'approve' ? 'approved' : 'rejected'} by ${managerId}.`,
+            action === 'approve' ? 'success' : 'warning'
+          );
+          closeModal();
+          loadAll();
+        } else {
+          showToast('Error', data.detail || 'Approval failed.', 'error');
+        }
+      } catch {
+        showToast('Error', 'Could not connect to server.', 'error');
+      }
+    }
+
+    // ── Load All ───────────────────────────────────────────────
+    function loadAll() {
+      loadAttendance();
+      loadEmployees();
+    }
+
+    // Close modal on backdrop click
+    document.getElementById('approval-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    loadAll();
+  </script>
+</body>
+</html>

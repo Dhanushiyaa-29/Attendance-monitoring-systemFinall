@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AttendAI — Smart Attendance Monitoring System</title>
+  <meta name="description" content="AI-powered attendance monitoring with face recognition and smart approval workflow for modern organizations." />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    .workflow-diagram {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      row-gap: 8px;
+      margin: 48px 0;
+    }
+    .workflow-step {
+      display: flex;
+      align-items: center;
+      gap: 0;
+    }
+    .workflow-node {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 20px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      min-width: 110px;
+      text-align: center;
+      transition: all var(--transition-base);
+    }
+    .workflow-node:hover {
+      border-color: var(--color-border-active);
+      background: var(--color-surface-hover);
+    }
+    .workflow-node-icon { font-size: 1.6rem; }
+    .workflow-node-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .workflow-arrow {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+    .pipeline-section {
+      padding: 60px 0;
+    }
+    .pipeline-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin-top: 32px;
+    }
+    .pipeline-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 28px;
+    }
+    .pipeline-card-num {
+      font-size: 3rem;
+      font-weight: 900;
+      opacity: 0.1;
+      line-height: 1;
+      margin-bottom: 12px;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .pipeline-card-title {
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    .pipeline-card-desc {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    @media (max-width: 768px) {
+      .pipeline-grid { grid-template-columns: 1fr; }
+      .workflow-diagram { flex-direction: column; }
+      .workflow-arrow { transform: rotate(90deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-mesh"><div class="bg-orb"></div></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/index.html" class="navbar-brand" id="nav-brand">
+        <div class="navbar-logo">🎯</div>
+        <span class="navbar-title">AttendAI</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" class="active" id="nav-home">Home</a></li>
+        <li><a href="/register.html" id="nav-register">Register</a></li>
+        <li><a href="/attendance.html" id="nav-attendance">Mark Attendance</a></li>
+        <li><a href="/result.html" id="nav-result">Dashboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <!-- Hero -->
+    <section class="hero fade-in">
+      <div class="container">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          Smart Approval · Face Recognition · Real-time
+        </div>
+        <h1 class="hero-title">
+          Attendance Monitoring<br />
+          <span class="gradient-text">Through Smart Approval</span>
+        </h1>
+        <p class="hero-subtitle">
+          AI-powered face recognition with 68-point landmark alignment, intelligent
+          duplicate detection, and automated approval workflows — built for modern organizations.
+        </p>
+        <div class="flex items-center justify-between" style="justify-content:center; gap:16px; flex-wrap:wrap;">
+          <a href="/register.html" class="btn btn-primary btn-lg" id="cta-register">
+            ✨ Register Employee
+          </a>
+          <a href="/attendance.html" class="btn btn-ghost btn-lg" id="cta-attendance">
+            📸 Mark Attendance
+          </a>
+        </div>
+
+        <!-- Workflow Diagram -->
+        <div class="workflow-diagram" aria-label="System workflow diagram">
+          <div class="workflow-step">
+            <div class="workflow-node">
+              <span class="workflow-node-icon">👤</span>
+              <span class="workflow-node-label">Employee ID</span>
+            </div>
+            <span class="workflow-arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-node">
+              <span class="workflow-node-icon">📸</span>
+              <span class="workflow-node-label">Face Capture</span>
+            </div>
+            <span class="workflow-arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-node">
+              <span class="workflow-node-icon">🔍</span>
+              <span class="workflow-node-label">SSD MobileNet</span>
+            </div>
+            <span class="workflow-arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-node">
+              <span class="workflow-node-icon">📐</span>
+              <span class="workflow-node-label">68 Landmarks</span>
+            </div>
+            <span class="workflow-arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-node">
+              <span class="workflow-node-icon">🧠</span>
+              <span class="workflow-node-label">Face Embedding</span>
+            </div>
+            <span class="workflow-arrow">→</span>
+          </div>
+          <div class="workflow-step">
+            <div class="workflow-node">
+              <span class="workflow-node-icon">✅</span>
+              <span class="workflow-node-label">Smart Approval</span>
+            </div>
+            <span class="workflow-arrow">→</span>
+          </div>
+          <div class="workflow-node">
+            <span class="workflow-node-icon">🗄️</span>
+            <span class="workflow-node-label">MongoDB Atlas</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature Cards -->
+    <section style="padding: 0 0 60px;">
+      <div class="container">
+        <div class="features-grid">
+
+          <a href="/register.html" class="feature-card feature-card-primary" id="feat-register">
+            <div class="feature-card-icon">👤</div>
+            <div>
+              <div class="feature-card-title">Employee Registration</div>
+              <div class="feature-card-desc">
+                Capture employee face, generate 128-d face embedding using
+                SSD MobileNet V1 + 68-point landmark alignment, and store securely in MongoDB Atlas.
+              </div>
+            </div>
+            <span class="feature-card-arrow">→</span>
+          </a>
+
+          <a href="/attendance.html" class="feature-card feature-card-success" id="feat-attendance">
+            <div class="feature-card-icon">📸</div>
+            <div>
+              <div class="feature-card-title">Mark Attendance</div>
+              <div class="feature-card-desc">
+                Live camera verification with real-time face matching against
+                registered embeddings. Prevents spoofing and duplicate entries automatically.
+              </div>
+            </div>
+            <span class="feature-card-arrow">→</span>
+          </a>
+
+          <a href="/result.html" class="feature-card feature-card-accent" id="feat-dashboard">
+            <div class="feature-card-icon">📊</div>
+            <div>
+              <div class="feature-card-title">Approval Dashboard</div>
+              <div class="feature-card-desc">
+                Manager review and approval panel. Smart rules auto-approve
+                on-time arrivals; late or low-confidence entries are flagged for review.
+              </div>
+            </div>
+            <span class="feature-card-arrow">→</span>
+          </a>
+
+          <a href="/result.html" class="feature-card feature-card-warning" id="feat-records">
+            <div class="feature-card-icon">🔒</div>
+            <div>
+              <div class="feature-card-title">Security & Privacy</div>
+              <div class="feature-card-desc">
+                Face embeddings stored instead of raw images. Employee ID + face
+                verification required — ID alone is never sufficient to record attendance.
+              </div>
+            </div>
+            <span class="feature-card-arrow">→</span>
+          </a>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Pipeline Section -->
+    <section class="pipeline-section">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2 class="section-title">Face Processing <span class="text-gradient">Pipeline</span></h2>
+          <p class="section-subtitle">Three-stage AI pipeline for accurate, robust face recognition</p>
+        </div>
+        <div class="pipeline-grid">
+          <div class="pipeline-card">
+            <div class="pipeline-card-num">01</div>
+            <div class="pipeline-card-title">🔍 SSD MobileNet V1 — Detection</div>
+            <div class="pipeline-card-desc">
+              Detects face locations in the input image. Returns bounding boxes with
+              confidence scores. Only high-confidence detections proceed to the next stage.
+            </div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-card-num">02</div>
+            <div class="pipeline-card-title">📐 68-Point Landmarks — Alignment</div>
+            <div class="pipeline-card-desc">
+              Identifies key facial landmarks (jawline, eyes, nose, mouth) for geometric
+              face alignment, ensuring consistent orientation before recognition.
+            </div>
+          </div>
+          <div class="pipeline-card">
+            <div class="pipeline-card-num">03</div>
+            <div class="pipeline-card-title">🧠 Face Recognition Net — Embedding</div>
+            <div class="pipeline-card-desc">
+              Generates a 128-dimensional numerical face embedding. The system compares
+              embeddings using Euclidean distance rather than raw pixel comparison.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- API Status -->
+    <section style="padding: 0 0 80px;">
+      <div class="container-narrow">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-icon card-icon-primary">🔌</div>
+            <div>
+              <div class="card-title">System Status</div>
+              <div class="card-subtitle">Backend API and database connectivity</div>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="status-content" class="empty-state">
+              <div class="empty-state-icon">⏳</div>
+              <div class="empty-state-title">Checking API...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script>
+    const API_BASE = 'http://127.0.0.1:8000';
+
+    async function checkStatus() {
+      const el = document.getElementById('status-content');
+      try {
+        const res = await fetch(`${API_BASE}/health`, { signal: AbortSignal.timeout(4000) });
+        const data = await res.json();
+
+        el.innerHTML = `
+          <div style="display:grid;gap:12px;">
+            <div class="result-row">
+              <span class="result-label">API Status</span>
+              <span class="badge badge-success">● Running</span>
+            </div>
+            <div class="result-row">
+              <span class="result-label">Database</span>
+              ${data.database_connected
+                ? '<span class="badge badge-success">● Connected</span>'
+                : '<span class="badge badge-danger">● Disconnected</span>'}
+            </div>
+            <div class="result-row">
+              <span class="result-label">Version</span>
+              <span class="result-value">${data.version}</span>
+            </div>
+            <div class="result-row" style="border:none;">
+              <span class="result-label">Docs</span>
+              <a href="${API_BASE}/docs" target="_blank" class="badge badge-info">Open Swagger UI →</a>
+            </div>
+          </div>
+        `;
+      } catch {
+        el.innerHTML = `
+          <div style="text-align:center;padding:20px;">
+            <div style="font-size:2rem;margin-bottom:12px;">⚠️</div>
+            <div style="font-weight:600;color:var(--color-warning);margin-bottom:8px;">Backend Offline</div>
+            <div style="font-size:0.85rem;color:var(--text-muted);">
+              Start the server with:<br/>
+              <code style="font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:6px;display:inline-block;margin-top:8px;">
+                uvicorn backend.main:app --reload
+              </code>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    checkStatus();
+  </script>
+</body>
+</html>

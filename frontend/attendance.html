@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mark Attendance — AttendAI</title>
+  <meta name="description" content="Verify your identity with face recognition to mark your attendance." />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-mesh"><div class="bg-orb"></div></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/index.html" class="navbar-brand" id="nav-brand">
+        <div class="navbar-logo">🎯</div>
+        <span class="navbar-title">AttendAI</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" id="nav-home">Home</a></li>
+        <li><a href="/register.html" id="nav-register">Register</a></li>
+        <li><a href="/attendance.html" class="active" id="nav-attendance">Mark Attendance</a></li>
+        <li><a href="/result.html" id="nav-result">Dashboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="container-narrow" style="padding-top:48px;padding-bottom:80px;">
+
+      <!-- Page Header -->
+      <div class="section-header fade-in">
+        <h1 class="section-title">Mark <span class="text-gradient">Attendance</span></h1>
+        <p class="section-subtitle">
+          Enter your Employee ID and verify your face. Both must match to record attendance.
+        </p>
+      </div>
+
+      <!-- Info Banner -->
+      <div style="background:rgba(6,182,212,0.08);border:1px solid rgba(6,182,212,0.2);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:24px;display:flex;align-items:center;gap:12px;" class="fade-in">
+        <span style="font-size:1.2rem;">🔒</span>
+        <p style="font-size:0.83rem;color:var(--text-secondary);">
+          <strong style="color:var(--color-accent);">Security:</strong>
+          Your Employee ID alone is not sufficient — face verification is always required.
+          Attendance will not be recorded if the face does not match.
+        </p>
+      </div>
+
+      <!-- Attendance Form -->
+      <div class="card fade-in" id="attendance-card">
+        <div class="card-header">
+          <div class="card-icon card-icon-success">📸</div>
+          <div>
+            <div class="card-title">Face Verification</div>
+            <div class="card-subtitle">Employee ID + Live face required</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <form id="attendance-form" novalidate>
+
+            <!-- Employee ID -->
+            <div class="form-group">
+              <label class="form-label" for="att-employee-id">Employee ID</label>
+              <input
+                type="text"
+                id="att-employee-id"
+                name="employee_id"
+                class="form-input"
+                placeholder="e.g. EMP001"
+                autocomplete="off"
+                required
+              />
+              <span class="form-hint">Enter your registered Employee ID exactly as provided.</span>
+            </div>
+
+            <div style="height:1px;background:var(--color-border);margin:20px 0;"></div>
+
+            <!-- Camera -->
+            <div class="form-group">
+              <label class="form-label">Live Face Capture</label>
+              <div class="camera-panel" id="att-camera-panel">
+                <div class="camera-placeholder" id="att-camera-placeholder">
+                  <span class="camera-placeholder-icon">🤳</span>
+                  <p class="camera-placeholder-text">
+                    Click "Start Camera" to begin face verification.
+                  </p>
+                </div>
+                <video id="att-video" class="camera-video hidden" autoplay muted playsinline></video>
+                <canvas id="att-canvas" class="camera-canvas hidden"></canvas>
+                <div class="camera-overlay" id="att-overlay" style="display:none;">
+                  <div class="face-guide" aria-hidden="true"></div>
+                  <div class="camera-status" id="att-status-text">Look straight into the camera</div>
+                </div>
+              </div>
+              <div class="camera-actions">
+                <button type="button" class="btn btn-outline flex-1" id="att-btn-start">
+                  📷 Start Camera
+                </button>
+                <button type="button" class="btn btn-ghost flex-1 hidden" id="att-btn-capture">
+                  📸 Capture
+                </button>
+                <button type="button" class="btn btn-ghost flex-1 hidden" id="att-btn-retake">
+                  🔄 Retake
+                </button>
+              </div>
+
+              <!-- Upload Alternative -->
+              <div style="text-align:center;margin-top:12px;">
+                <span style="font-size:0.8rem;color:var(--text-muted);">— or upload a photo —</span>
+              </div>
+              <div style="margin-top:12px;">
+                <label for="att-upload" style="cursor:pointer;">
+                  <div class="btn btn-ghost w-full" style="border-style:dashed;">
+                    📁 Upload Face Photo
+                  </div>
+                </label>
+                <input type="file" id="att-upload" accept="image/*" style="display:none;" />
+              </div>
+            </div>
+
+            <!-- Verify Button -->
+            <button
+              type="submit"
+              class="btn btn-success btn-lg btn-block"
+              id="att-btn-verify"
+              disabled
+            >
+              🔍 Verify & Mark Attendance
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Result Area (dynamically filled by JS) -->
+      <div id="att-result-area" class="fade-in" style="margin-top:24px;"></div>
+
+      <!-- Quick Links -->
+      <div style="display:flex;gap:12px;margin-top:24px;" class="fade-in">
+        <a href="/result.html" class="btn btn-outline flex-1" id="btn-view-records">
+          📋 View Records
+        </a>
+        <a href="/register.html" class="btn btn-ghost flex-1" id="btn-go-register">
+          👤 Register New Employee
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="/js/attendance.js"></script>
+</body>
+</html>

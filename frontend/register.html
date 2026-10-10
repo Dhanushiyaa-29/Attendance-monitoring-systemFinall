@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Registration — AttendAI</title>
+  <meta name="description" content="Register a new employee by capturing their face and entering their details." />
+  <link rel="stylesheet" href="/static/style.css" />
+</head>
+<body>
+  <div class="bg-mesh"><div class="bg-orb"></div></div>
+
+  <!-- Navigation -->
+  <nav class="navbar" role="navigation" aria-label="Main navigation">
+    <div class="navbar-inner">
+      <a href="/index.html" class="navbar-brand" id="nav-brand">
+        <div class="navbar-logo">🎯</div>
+        <span class="navbar-title">AttendAI</span>
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="/index.html" id="nav-home">Home</a></li>
+        <li><a href="/register.html" class="active" id="nav-register">Register</a></li>
+        <li><a href="/attendance.html" id="nav-attendance">Mark Attendance</a></li>
+        <li><a href="/result.html" id="nav-result">Dashboard</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="page-wrapper">
+    <div class="container-narrow" style="padding-top:48px;padding-bottom:80px;">
+
+      <!-- Page Header -->
+      <div class="section-header fade-in">
+        <h1 class="section-title">Employee <span class="text-gradient">Registration</span></h1>
+        <p class="section-subtitle">
+          Capture the employee's face and enter their details to generate a secure face embedding.
+        </p>
+      </div>
+
+      <!-- Progress Steps -->
+      <div class="steps fade-in" id="steps-indicator" aria-label="Registration steps">
+        <div class="step active" id="step-1">
+          <div class="step-num">1</div>
+          <span>Details</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-2">
+          <div class="step-num">2</div>
+          <span>Face Capture</span>
+        </div>
+        <div class="step-line"></div>
+        <div class="step" id="step-3">
+          <div class="step-num">3</div>
+          <span>Register</span>
+        </div>
+      </div>
+
+      <!-- Form Card -->
+      <div class="card fade-in" id="register-card">
+        <div class="card-header">
+          <div class="card-icon card-icon-primary">👤</div>
+          <div>
+            <div class="card-title">New Employee</div>
+            <div class="card-subtitle">Fill in details and capture a clear face photo</div>
+          </div>
+        </div>
+
+        <div class="card-body">
+          <form id="register-form" novalidate>
+
+            <!-- Employee Details -->
+            <div class="form-group">
+              <label class="form-label" for="employee-name">Employee Full Name</label>
+              <input
+                type="text"
+                id="employee-name"
+                name="name"
+                class="form-input"
+                placeholder="e.g. Dinesh Kumar"
+                autocomplete="name"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="employee-id">Employee ID</label>
+              <input
+                type="text"
+                id="employee-id"
+                name="employee_id"
+                class="form-input"
+                placeholder="e.g. EMP001"
+                autocomplete="off"
+                required
+              />
+              <span class="form-hint">Must be unique. Example format: EMP001, HR0023</span>
+            </div>
+
+            <div style="height:1px;background:var(--color-border);margin:24px 0;"></div>
+
+            <!-- Camera Section -->
+            <div class="form-group">
+              <label class="form-label">Face Capture</label>
+              <div class="camera-panel" id="camera-panel">
+                <!-- Placeholder shown before camera starts -->
+                <div class="camera-placeholder" id="camera-placeholder">
+                  <span class="camera-placeholder-icon">📷</span>
+                  <p class="camera-placeholder-text">
+                    Click "Start Camera" to enable the webcam,<br />or upload a photo directly.
+                  </p>
+                </div>
+                <!-- Live video feed -->
+                <video id="camera-video" class="camera-video hidden" autoplay muted playsinline></video>
+                <!-- Captured snapshot -->
+                <canvas id="camera-canvas" class="camera-canvas hidden"></canvas>
+                <!-- Overlay with face guide -->
+                <div class="camera-overlay" id="camera-overlay-guide" style="display:none;">
+                  <div class="face-guide" aria-hidden="true"></div>
+                  <div class="camera-status" id="camera-status-text">Position your face inside the guide</div>
+                </div>
+              </div>
+
+              <!-- Camera Controls -->
+              <div class="camera-actions">
+                <button type="button" class="btn btn-outline flex-1" id="btn-start-camera">
+                  📷 Start Camera
+                </button>
+                <button type="button" class="btn btn-ghost flex-1 hidden" id="btn-capture">
+                  📸 Capture Face
+                </button>
+                <button type="button" class="btn btn-ghost flex-1 hidden" id="btn-retake">
+                  🔄 Retake
+                </button>
+              </div>
+
+              <!-- Upload Alternative -->
+              <div style="text-align:center;margin-top:12px;">
+                <span style="font-size:0.8rem;color:var(--text-muted);">— or —</span>
+              </div>
+              <div style="margin-top:12px;">
+                <label class="form-label" for="upload-photo" style="cursor:pointer;">
+                  <div class="btn btn-ghost w-full" style="border-style:dashed;">
+                    📁 Upload Photo
+                  </div>
+                </label>
+                <input
+                  type="file"
+                  id="upload-photo"
+                  accept="image/*"
+                  style="display:none;"
+                />
+              </div>
+
+              <span class="form-hint" style="margin-top:8px;display:block;">
+                Ensure good lighting and face is clearly visible. Avoid glasses or hats if possible.
+              </span>
+            </div>
+
+            <!-- Register Button -->
+            <button
+              type="submit"
+              class="btn btn-primary btn-lg btn-block"
+              id="btn-register"
+              disabled
+            >
+              ✨ Register Employee
+            </button>
+
+          </form>
+        </div>
+      </div>
+
+      <!-- Success Card (hidden initially) -->
+      <div class="card result-card result-success hidden fade-in" id="success-card">
+        <div class="card-body text-center" style="padding:40px 32px;">
+          <div class="result-icon">✅</div>
+          <h2 style="font-size:1.4rem;font-weight:800;margin-bottom:8px;">Registration Successful!</h2>
+          <p style="color:var(--text-secondary);margin-bottom:24px;font-size:0.9rem;" id="success-message">
+            Employee registered successfully.
+          </p>
+          <div id="success-details" style="margin-bottom:28px;text-align:left;"></div>
+          <div style="display:flex;gap:12px;">
+            <button class="btn btn-outline flex-1" id="btn-register-another">
+              👤 Register Another
+            </button>
+            <a href="/attendance.html" class="btn btn-primary flex-1" id="btn-go-attendance">
+              📸 Mark Attendance
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container" aria-live="polite"></div>
+
+  <script src="/js/register.js"></script>
+</body>
+</html>
