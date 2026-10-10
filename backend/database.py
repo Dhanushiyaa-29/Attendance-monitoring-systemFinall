@@ -12,9 +12,9 @@ db     = None
 try:
     client = MongoClient(
         MONGODB_URI,
-        serverSelectionTimeoutMS=3000,
-        connectTimeoutMS=3000,
-        socketTimeoutMS=3000,
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        socketTimeoutMS=5000,
     )
     # Light connectivity check — will raise if URI is invalid or unreachable
     client.admin.command("ping")
@@ -22,11 +22,18 @@ try:
     print(f"[DB] Connected to MongoDB — database: {DATABASE_NAME}")
 except Exception as e:
     print(
-        f"[DB] WARNING: Could not connect to MongoDB: {type(e).__name__}: {e}\n"
-        "     Ensure the local MongoDB service is running on port 27017."
+        f"[DB] WARNING: Could not connect to real MongoDB on 27017: {type(e).__name__}: {e}\n"
+        "     Falling back to in-memory mongomock database."
     )
-    client = None
-    db     = None
+    try:
+        import mongomock
+        client = mongomock.MongoClient()
+        db = client[DATABASE_NAME]
+        print(f"[DB] Connected to in-memory mongomock database: {DATABASE_NAME}")
+    except Exception as mock_err:
+        print(f"[DB] mongomock error: {mock_err}")
+        client = None
+        db     = None
 
 # Collections (None when not connected — routes will return 503)
 employees_collection = db["employees"]       if db is not None else None

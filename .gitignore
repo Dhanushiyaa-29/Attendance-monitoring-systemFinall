@@ -1,5 +1,15 @@
+# Environment variables & secrets
 .env
+*.env
+backend/.env
+
+# Python Virtual Environments
+.venv/
 venv/
+ENV/
+env/
+
+# Python cache & build files
 __pycache__/
 *.pyc
 *.pyo
@@ -8,6 +18,13 @@ __pycache__/
 *.egg-info/
 dist/
 build/
-.DS_Store
+
+# Logs & OS files
 *.log
-models/
+.DS_Store
+Thumbs.db
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
